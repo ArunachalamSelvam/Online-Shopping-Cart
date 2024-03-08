@@ -2,6 +2,8 @@ package com.shoppingCart.util;
 
 import java.util.Scanner;
 
+import com.shoppingCart.service.ShoppingCartService;
+
 public class InputScanner {
     private static Scanner scanner = new Scanner(System.in);
 
@@ -9,14 +11,18 @@ public class InputScanner {
         while (true) {
             try {
                 System.out.print(prompt);
+                
                 int input = scanner.nextInt();
                 scanner.nextLine();
                 return input;
+                
             } catch (java.util.InputMismatchException e) {
                 System.out.println("Invalid input. Please enter an integer.");
                 scanner.nextLine(); // Consume the invalid input
             }
         }
+        
+        
     }
 
     public static double getDouble(String prompt) {
@@ -75,4 +81,20 @@ public class InputScanner {
             }
         }
     }
+    
+	public static String getEmail(String prompt) {
+		while (true) {
+			System.out.print(prompt);
+			String input = scanner.nextLine();
+			
+			if (ShoppingCartService.isValidEmail(input)) {
+				return input;
+			} else {
+				System.out.println();
+				System.out.println("Please Enter The Valid Email.");
+				System.out.println();
+				continue;
+			}
+		}
+	}
 }

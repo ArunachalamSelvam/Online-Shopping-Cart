@@ -44,12 +44,15 @@ public class Order {
 		System.out.println("Invoice Id : " + invoiceId);
 		System.out.println("Billing Address : "+ billingAddress.toString());
 		System.out.println("Purchased Product List");
+		int i=1;
 		for(Map.Entry<Product, Integer> entry : productList.entrySet()) {
 			Product product = entry.getKey();
 			int count = entry.getValue();
 			System.out.println("--------------------------------------------------");
+			System.out.print("Item "+ i++ +" : ");
 			System.out.println(product.getBrand().getBrandName()+" "+ product.getModel() +" " +product.getCategory().getCategoryName() );
-			System.out.println(product.getPrice()*count);
+			System.out.println("Count : " + count);
+			System.out.println("Price : "+product.getPrice()*count);
 			System.out.println("--------------------------------------------------");
 			System.out.println();
 		}

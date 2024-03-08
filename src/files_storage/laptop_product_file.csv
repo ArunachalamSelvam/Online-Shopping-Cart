@@ -1,0 +1,5 @@
+Product Id,Category,Brand,Model,Price,Stock,Processor,Processor Speed,OS,RAM,Storage,Screen Size,Display Type,Color,MadeInCountry,Made In Year,Weight
+5,LAPTOP,DELL,LATTITUDE,100000,10,intel i5 8th gen,1.7,Windows 10 pro,8,512,35.5Cm,LCD,BLACK,INDIA,2021,2.5
+6,LAPTOP,HP,PAVILION 15,49990,10,ryzen 5 5625U,4.3,Windows 11,8,512,39.6Cm,LED,SILVER,CHINA,2022,1.75
+7,LAPTOP,APPLE,MACBOOK Pro,189900,10,M3 chip with 8 Core cpu,2.75,Mac OS,8,1,35.56Cm,LED,SPACE_GRAY,INDIA,2020,1.55
+9,LAPTOP,LENOVO,THINKPAD,30000.0,10,intel i5,4.0,windows,4,500,38cm,led,BLACK,CHINA,2023,3.5

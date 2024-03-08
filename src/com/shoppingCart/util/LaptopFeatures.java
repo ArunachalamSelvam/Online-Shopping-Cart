@@ -12,37 +12,10 @@ public class LaptopFeatures implements Features {
 	private Country madeInCountry;
 	private int madeInTheYear;
 	private float weight;
-	
-//	public LaptopFeatures() {
-//		this.processor = InputScanner.getString("Enter The Processor Name : ").intern();
-//		this.processorSpeed = InputScanner.getString("Enter The Processor Speed : ").intern();
-//		this.operatingSystem = InputScanner.getString("Enter The OS").intern();
-//		this.ramInGb = InputScanner.getString("Enter The RAM Size : ").intern();
-//    	this.storageInGb = InputScanner.getString("Enter The Storage Size : ").intern();
-//    	this.screenSize = InputScanner.getString("Enter The Screen Size : ").intern();
-//    	this.displayType = InputScanner.getString("Enter The Display Type : ").intern();
-//    	
-//    	while (true) {
-//			String color = InputScanner.getStringInUpper("Enter The Color : ");
-//			if (Color.isContains(color)) {
-//				this.color = Color.valueOf(color);
-//			} else {
-//				System.out.println("Enter The Valid Color ..");
-//				continue;
-//			}
-//
-//			break;
-//		}
-//    	
-//    	this.madeInCountry = Country.valueOf(InputScanner.getStringInUpper("Enter The Made In Country : "));
-//    	this.madeInTheYear = InputScanner.getInt("Enter The Made In Year : ");
-//    	this.weight = InputScanner.getFloat("Enter The Product Weight : ");
-//    	
-//	}
 
-	public LaptopFeatures(String processor, float processorSpeed, String operatingSystem, int ramInGb,
-			int storageInGb, String screenSize, String displayType, Color color, Country madeInCountry,
-			int madeInYear, float weight) {
+
+	public LaptopFeatures(String processor, float processorSpeed, String operatingSystem, int ramInGb, int storageInGb,
+			String screenSize, String displayType, Color color, Country madeInCountry, int madeInYear, float weight) {
 
 		this.processor = processor;
 		this.processorSpeed = processorSpeed;
@@ -55,23 +28,32 @@ public class LaptopFeatures implements Features {
 		this.madeInCountry = madeInCountry;
 		this.madeInTheYear = madeInYear;
 		this.weight = weight;
+
+	}
+
+	@Override
+	public String toString() {
+
+		return processor + "," + processorSpeed + "," + operatingSystem + "," + ramInGb + "," + storageInGb + ","
+				+ screenSize + "," + displayType + "," + color + "," + madeInCountry + "," + madeInTheYear + ","
+				+ weight;
 	}
 
 	@Override
 	public void displayFeatures() {
 		System.out.println();
 		System.out.println("---------------------------------------------------");
-		System.out.println("\t"+"\t"+"Features Description");
-		System.out.println("---------------------------------------------------");		
+		System.out.println("\t" + "\t" + "Features Description");
+		System.out.println("---------------------------------------------------");
 		System.out.println("\t" + "Processor : " + processor);
-		System.out.println("\t" + "Processor Speed : " + processorSpeed +"GHz");
+		System.out.println("\t" + "Processor Speed : " + processorSpeed + "GHz");
 		System.out.println("\t" + "Operating System : " + operatingSystem);
-		System.out.println("\t" + "RAM : " + ramInGb +"GB");
-		System.out.println("\t" + "Storage : " + storageInGb +"GB");
+		System.out.println("\t" + "RAM : " + ramInGb + "GB");
+		System.out.println("\t" + "Storage : " + storageInGb + "GB");
 		System.out.println("\t" + "Screen Size : " + screenSize);
 		System.out.println("\t" + "Display Type :" + displayType);
 		System.out.println("\t" + "Weight : " + weight + " Kg");
-		System.out.println("---------------------------------------------------");		
+		System.out.println("---------------------------------------------------");
 
 	}
 

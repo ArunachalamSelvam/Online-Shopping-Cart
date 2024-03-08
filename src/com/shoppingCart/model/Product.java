@@ -1,9 +1,15 @@
 package com.shoppingCart.model;
 
+import java.io.Serializable;
+
 import com.shoppingCart.util.Features;
 
 
-public class Product {
+public class Product implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	public static int id = 1;
 	private int productId;
 	private Category category;
@@ -14,17 +20,10 @@ public class Product {
 	
 	private Features features;
 	
-//	public Product() {
-//		this.productId = id++;
-//		this.category = new Category();
-//		this.brand = new Brand();
-//		this.model = InputScanner.getString("Enter The Model Name : ").intern();
-//		this.price = InputScanner.getDouble("Enter The Price : ");
-//		this.stock = InputScanner.getInt("Enter The Stock : ");
-//		this.features = ShoppingCartService.createFeatures(category);
-//	}
+
 	
 	public Product(String category, String brand, String model, double price, int stock, Features features) {
+		
 		this.productId= id++;
 		this.category = new Category(category);
 		this.brand = new Brand(brand);
@@ -32,8 +31,28 @@ public class Product {
 		this.price = price;
 		this.stock = stock;
 		this.features = features;
+		
 	}
 	
+	public Product(int productId,String category, String brand, String model, double price, int stock, Features features) {
+		id++;
+		this.productId= productId;
+		this.category = new Category(category);
+		this.brand = new Brand(brand);
+		this.model = model;
+		this.price = price;
+		this.stock = stock;
+		this.features = features;
+		
+	}
+	
+	
+	@Override
+	public String toString() {
+		
+		return productId+","+category.getCategoryName()+","+brand.getBrandName()+","+model+","+price+","+stock+","+features.toString();
+	
+	}
 	
 	public static void toString(Product product) {
 		System.out.println("\n"+"\t"+product.getBrand().getBrandName()+" "+ product.getModel() +" " +product.getCategory().getCategoryName() +"\n"+"\t" +"Price : " + product.getPrice());

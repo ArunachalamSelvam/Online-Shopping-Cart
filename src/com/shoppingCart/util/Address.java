@@ -9,18 +9,6 @@ public class Address {
 	private Country country;
 	private int pincode;
 	
-//	public Address() {
-//		this.doorNo = InputScanner.getString("Enter Your Door No : ");
-//		this.streetName = InputScanner.getStringInLower("Enter Your Street Name : ");
-//		this.village = InputScanner.getStringInUpper("Enter Your Village : ").intern();
-//		this.district = District.getDistrict();
-//		this.state = State.getState();
-//		this.country = Country.INDIA;
-//		this.pincode = InputScanner.getInt("Enter Your Pincode : ");
-//	}
-
-	
-	
 	
 	public Address(String doorNo, String streetName, String village, District district, State state, int pincode) {
 		

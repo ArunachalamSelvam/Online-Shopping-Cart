@@ -22,20 +22,9 @@ public class Customer {
 	private List<Order> myOrder;
 	private Cart myCart;
 
-//	public Customer() {
-//		this.customerId = id++;
-//		this.customerName = InputScanner.getStringInUpper("Enter Your Name : ");
-//		this.mobileNo = InputScanner.getLong("Enter Your Mobile Number : ");
-//		this.emailId = InputScanner.getStringInLower("Enter Your EmailId : ");
-//		this.password = InputScanner.getString("Enter Your Password : ");
-//		this.address = new Address();
-//		this.myOrder = new ArrayList<>();
-//		this.myCart = new Cart();
-//
-//	}
 
 	public Customer(String emailId, String password, String customerName, long mobileNo, Address address) {
-		super();
+		
 		this.customerId = id++;
 		this.emailId = emailId;
 		this.password = password;
@@ -46,7 +35,7 @@ public class Customer {
 		this.myCart = new Cart();
 	}
 
-	public void buyProducts() {
+	public void buyProductFromCart() {
 
 		Map<Product, Integer> map = new LinkedHashMap<Product, Integer>();
 		
@@ -62,7 +51,7 @@ public class Customer {
 				while (true) {
 					int productcount = myCart.getProducts().get(product);
 					
-					if(DataManager.productMap.get(product.getProductId()).getStock()==0) {
+					if(DataManager.getData().getProductMap().get(product.getProductId()).getStock()==0) {
 						System.out.println("Product Currently Out Of Stock.");
 						break;
 					}
@@ -91,6 +80,8 @@ public class Customer {
 
 				}
 			}
+			
+			
 		}
 
 		else {
@@ -100,47 +91,15 @@ public class Customer {
 
 			while (true) {
 				int productcount = myCart.getProducts().get(product);
-				if(DataManager.productMap.get(product.getProductId()).getStock()==0) {
+				if(DataManager.getData().getProductMap().get(product.getProductId()).getStock()==0) {
 					System.out.println("Product Currently Out Of Stock.");
 					break;
 				}
 				else if (ShoppingCartService.isProductAvailable(product.getProductId(), productcount)) {
-
-					while (true) {
-						System.out.println("\t" + "Confirm Your Purchase :" + "\n" + "\t" + "1. Confirm"
-								+ "\n" + "\t" + "2. Cancel");
-						int choice = InputScanner.getInt("\n"+"\t" + "Enter The Option : ");
-
-						switch (choice) {
-						case 1 -> {
-							map.put(product, productcount);
-
-							Order order = new Order(map, address, "COD");
-							myCart.removeItem(map);
-							myOrder.add(order);
-							order.printOrder();
-							break;
-						}
-
-						case 2 -> {
-							System.out.println("Your Order Rejected..");
-							break;
-							
-						}
-
-						default -> {
-							System.out.println("Enter The Valid Option.");
-							continue;
-						}
-
-						}
-						break;
-					}
+					map.put(product, productcount);
 					break;
-
 				} else {
-					System.out
-							.println("Your Product Count Exceeds. Available Product Quantity : " + product.getStock());
+					System.out.println("Your Product Count Exceeds. Available Product Quantity : " + product.getStock());
 
 					System.out.println();
 
@@ -152,6 +111,38 @@ public class Customer {
 
 			}
 
+		}
+		
+		while (true) {
+			System.out.println("\t" + "Confirm Your Purchase :" + "\n" + "\t" + "1. Confirm"
+					+ "\n" + "\t" + "2. Cancel");
+			int choice = InputScanner.getInt("\n"+"\t" + "Enter The Option : ");
+
+			switch (choice) {
+			case 1 -> {
+	
+				Order order = new Order(map, address, "COD");
+				myCart.removeItem(map);
+				myOrder.add(order);
+				order.printOrder();
+				ShoppingCartService.stockDeduction(map);
+				
+				break;
+			}
+
+			case 2 -> {
+				System.out.println("Your Order Rejected..");
+				break;
+				
+			}
+
+			default -> {
+				System.out.println("Enter The Valid Option.");
+				continue;
+			}
+
+			}
+			break;
 		}
 
 	}

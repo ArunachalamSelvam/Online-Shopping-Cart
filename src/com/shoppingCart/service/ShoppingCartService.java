@@ -1,5 +1,6 @@
 package com.shoppingCart.service;
 
+import com.shoppingCart.model.Brand;
 import com.shoppingCart.model.Category;
 import com.shoppingCart.model.Customer;
 import com.shoppingCart.model.Order;
@@ -14,7 +15,16 @@ import com.shoppingCart.util.LaptopFeatures;
 import com.shoppingCart.util.MobileFeatures;
 import com.shoppingCart.util.State;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -22,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.shoppingCart.adminSystem.Admin;
+import com.shoppingCart.adminSystem.AdminAuthenticator;
 import com.shoppingCart.data.DataManager;
 
 public class ShoppingCartService {
@@ -43,13 +54,6 @@ public class ShoppingCartService {
 //	public static final int DECREASE_COUNT = 2;
 	public static final int CLEAR_CART = 2;
 
-	// Admin's View options
-	public static final int ADD_PRODUCT = 1;
-	public static final int DELETE_PRODUCT = 2;
-	public static final int UPDATE_STOCK = 3;
-	public static final int VIEW_PRODUCT = 4;
-	public static final int EXIT = 5;
-
 	// Search Options
 	public static final int VIEW_PRODUCTS = 1;
 	public static final int PREVIOUS = 2;
@@ -58,39 +62,237 @@ public class ShoppingCartService {
 		String category = product.getCategory().getCategoryName();
 		String brand = product.getBrand().getBrandName();
 
-		if (DataManager.categoryMap.containsKey(category)) {
-			product.setCategory(DataManager.categoryMap.get(category));
-			
+		if (DataManager.getData().getCategoryMap().containsKey(category)) {
+			product.setCategory(DataManager.getData().getCategoryMap().get(category));
+
 		} else {
-			DataManager.categoryMap.put(category, product.getCategory());
+			DataManager.getData().getCategoryMap().put(category, product.getCategory());
 		}
 
-		if (DataManager.brandMap.containsKey(brand)) {
-			product.setBrand(DataManager.brandMap.get(brand));
+		if (DataManager.getData().getBrandMap().containsKey(brand)) {
+			product.setBrand(DataManager.getData().getBrandMap().get(brand));
 //			product.getBrand().setBrand("Nokia");
 		} else {
-			DataManager.brandMap.put(brand, product.getBrand());
-			
+			DataManager.getData().getBrandMap().put(brand, product.getBrand());
+
 		}
 
-		if (!DataManager.productMap.containsKey(product.getProductId())) {
-			DataManager.productMap.put(product.getProductId(), product);
-		} else {
+		if (!DataManager.getData().getProductMap().containsKey(product.getProductId())) {
+			DataManager.getData().getProductMap().put(product.getProductId(), product);
+
+					} else {
 			System.out.println("Product Already Exists.");
 		}
 
 	}
 
-	public static void addCustomer(Customer customer) {
-		if (!isExistingCustomer(customer.getEmailId(), customer.getPassword())) {
-			DataManager.customerMap.put(customer.getEmailId(), customer);
-		} else {
-			System.out.println("Customer Already Exsits.");
+	public static void addProductToFile(Product product) {
+		
+		String category = product.getCategory().getCategoryName();
+
+		// File Writer Method
+		if (category.equalsIgnoreCase("mobile") || category.equalsIgnoreCase("tablet")) {
+			try {
+				BufferedWriter writer = new BufferedWriter(new FileWriter(
+						"C:/Users/Admin/Desktop/java workspace/ShoppingCartProject/src/files_storage/mobile_product_file.csv",
+						true));
+				writer.write(product.toString());
+				writer.newLine();
+				writer.close();
+
+			} catch (IOException io) {
+				io.printStackTrace();
+			}
+		}
+
+		else if (category.equalsIgnoreCase("laptop")) {
+			try {
+				BufferedWriter writer = new BufferedWriter(new FileWriter(
+						"C:/Users/Admin/Desktop/java workspace/ShoppingCartProject/src/files_storage/laptop_product_file.csv",
+						true));
+				writer.write(product.toString());
+				writer.newLine();
+				writer.close();
+
+			} catch (IOException io) {
+				io.printStackTrace();
+			}
+		}
+
+	}
+
+	public static void readProduct() {
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(new File(
+					"C:/Users/Admin/Desktop/java workspace/ShoppingCartProject/src/files_storage/mobile_product_file.csv")));
+			reader.readLine();
+			String line;
+			while ((line = reader.readLine()) != null) {
+				addProduct(parseProduct(line));
+			}
+			
+
+			BufferedReader readers = new BufferedReader(new FileReader(new File(
+					"C:/Users/Admin/Desktop/java workspace/ShoppingCartProject/src/files_storage/laptop_product_file.csv")));
+			
+			readers.readLine();
+			while ((line = readers.readLine()) != null) {
+				addProduct(parseProduct(line));
+			}
+			
+			reader.close();
+			
+		} catch (IOException io) {
+			io.printStackTrace();
 		}
 	}
 
+	public static Product parseProduct(String s) {
+//		System.out.println(s);
+		String[] st = s.split(",");
+//		System.out.println(Arrays.toString(st));
+		
+		int productId = Integer.parseInt(st[0]);
+		String category = st[1];
+		String brand = st[2];
+		String model = st[3];
+		double price = Double.parseDouble(st[4]);
+		int stock = Integer.parseInt(st[5]);
+
+		Features features = null;
+		if (category.equals("mobile") || category.equals("tablet")) {
+			String screenSize = st[6];
+			int batteryCapacity = Integer.parseInt(st[7]);
+			int ramInGb = Integer.parseInt(st[8]);
+			int storageInGb = Integer.parseInt(st[9]);
+			int frontCameraCapacity = Integer.parseInt(st[10]);
+			int rearCameraCapacity = Integer.parseInt(st[11]);
+			String operatingSystem = st[12];
+			Color color = Color.valueOf(st[13]);
+			Country madeInCountry = Country.valueOf(st[14]);
+			int madeInTheYear = Integer.parseInt(st[15]);
+			float weight = Float.parseFloat(st[16]);
+
+			features = new MobileFeatures(screenSize, batteryCapacity, ramInGb, storageInGb, frontCameraCapacity,
+					rearCameraCapacity, operatingSystem, color, madeInCountry, madeInTheYear, weight);
+		}
+
+		else if (category.equals("laptop")) {
+			String processor = st[6];
+			int processorSpeed = Integer.parseInt(st[7]);
+			String operatingSystem = st[8];
+
+			int ramInGb = Integer.parseInt(st[9]);
+			int storageInGb = Integer.parseInt(st[10]);
+			String screenSize = st[11];
+			String screenType = st[12];
+			Color color = Color.valueOf(st[13]);
+			Country madeInCountry = Country.valueOf(st[14]);
+			int madeInTheYear = Integer.parseInt(st[15]);
+			float weight = Float.parseFloat(st[16]);
+
+			features = new LaptopFeatures(processor, processorSpeed, operatingSystem, ramInGb, storageInGb, screenSize,
+					screenType, color, madeInCountry, madeInTheYear, weight);
+		}
+
+		return new Product(productId,category, brand, model, price, stock, features);
+	}
+
+	public static void deleteProductFromFile(int productId) {
+		String category = DataManager.getData().getProductMap().get(productId).getCategory().getCategoryName();
+		
+		System.out.println(category);
+		if(category.equalsIgnoreCase("mobile") || category.equalsIgnoreCase("tablet")) {
+			
+			try {
+//				BufferedReader reader = new BufferedReader(new FileReader("C:/Users/Admin/Desktop/java workspace/ShoppingCartProject/src/files_storage/mobile_product_file.csv"));
+				
+				RandomAccessFile file = new RandomAccessFile(new File("C:/Users/Admin/Desktop/java workspace/ShoppingCartProject/src/files_storage/mobile_product_file.csv"),"rw");
+
+//				BufferedWriter writer = new BufferedWriter(new FileWriter(
+//						"C:/Users/Admin/Desktop/java workspace/ShoppingCartProject/src/files_storage/mobile_product_file.csv"));
+				
+				String line;
+				file.readLine();
+				
+	         
+				while((line = file.readLine()) != null) {
+					String [] st = line.split(",");
+					int id = Integer.parseInt(st[0]);
+					
+					if(id==productId) {
+						System.out.println(line);
+						   long currentPosition = file.getFilePointer();
+
+						file.seek(currentPosition);
+						file.writeBytes("".repeat(line.length()));
+						break;
+						
+					}
+					
+					
+					
+				}
+				
+				file.close();
+				
+			}catch(FileNotFoundException io) {
+				io.printStackTrace();
+			}catch(IOException io) {
+				io.printStackTrace();
+			}
+		}
+		
+		else if(category.equalsIgnoreCase("laptop")) {
+			try {
+//				BufferedReader reader = new BufferedReader(new FileReader("C:/Users/Admin/Desktop/java workspace/ShoppingCartProject/src/files_storage/mobile_product_file.csv"));
+				
+				RandomAccessFile file = new RandomAccessFile(new File("C:/Users/Admin/Desktop/java workspace/ShoppingCartProject/src/files_storage/laptop_product_file.csv"),"rw");
+
+//				BufferedWriter writer = new BufferedWriter(new FileWriter(
+//						"C:/Users/Admin/Desktop/java workspace/ShoppingCartProject/src/files_storage/mobile_product_file.csv"));
+				
+				String line;
+				file.readLine();
+				
+	            long currentPosition = file.getFilePointer();
+
+				while((line = file.readLine()) != null) {
+					String [] st = line.split(",");
+					int id = Integer.parseInt(st[0]);
+					
+					if(id==productId) {
+						file.seek(currentPosition);
+						file.writeBytes("".repeat(line.length()));
+						break;
+					}
+					
+					currentPosition = file.getFilePointer();
+					
+				}
+				
+				file.close();
+				
+			}catch(FileNotFoundException io) {
+				io.printStackTrace();
+			}catch(IOException io) {
+				io.printStackTrace();
+			}
+		}
+
+		
+	}
+	public static boolean addCustomer(Customer customer) {
+		if (!isExistingCustomer(customer.getEmailId(), customer.getPassword())) {
+			DataManager.getData().getCustomerMap().put(customer.getEmailId(), customer);
+			return true;
+		}
+		System.out.println("Customer Already Exsits.");
+		return false;
+	}
+
 	public static boolean isExistingCustomer(String emailId, String password) {
-		Customer customer = DataManager.customerMap.get(emailId);
+		Customer customer = DataManager.getData().getCustomerMap().get(emailId);
 		if (customer == null || !customer.getPassword().equals(password)) {
 			return false;
 		}
@@ -108,27 +310,17 @@ public class ShoppingCartService {
 		return false;
 	}
 
-	public static void signUp() {
-		
-		String customerName = InputScanner.getStringInUpper("Enter Your Name : ").intern();
-		long mobileNo = InputScanner.getLong("Enter Your Mobile Number : ");
-		String emailId = InputScanner.getStringInLower("Enter Your EmailId : ").intern();
-		String password = InputScanner.getString("Enter Your Password : ").intern();
-		
-		String doorNo = InputScanner.getString("Enter Your Door No : ").intern();
-		String streetName = InputScanner.getStringInLower("Enter Your Street Name : ").intern();
-		String village = InputScanner.getStringInUpper("Enter Your Village : ").intern();
-		District district = District.getDistrict();
-		State state = State.getState();
+	public static void signUp(String customerName, long mobileNo, String emailId, String password, String doorNo,
+			String streetName, String village, District district, State state, int pincode) {
 
-		int pincode = InputScanner.getInt("Enter Your Pincode : ");
+		Customer customer = new Customer(emailId, password, customerName, mobileNo,
+				new Address(doorNo, streetName, village, district, state, pincode));
 
-		Customer customer = new Customer(emailId, password, customerName, mobileNo,new Address(doorNo, streetName, village, district, state, pincode));
-
-		if (!isExistingCustomer(customer.getEmailId(), customer.getPassword())) {
-			DataManager.customerMap.put(customer.getEmailId(), customer);
+		if (addCustomer(customer)) {
+			System.out.println("Signing Up Successful..");
 		} else {
 			System.out.println("UserName Already in the System. Go To SignIn..");
+
 		}
 
 	}
@@ -136,7 +328,7 @@ public class ShoppingCartService {
 	public static void showProducts() {
 		int i = 1;
 		int count = 0;
-		for (Product product : DataManager.productMap.values()) {
+		for (Product product : DataManager.getData().getProductMap().values()) {
 			if (count == 0) {
 				System.out.printf("%-7s%-13s%-13s%-15s%-13s%n", "S.No", "Category", "Brand", "Model", "Price");
 				System.out.println();
@@ -149,9 +341,9 @@ public class ShoppingCartService {
 	}
 
 	public static void stockDeduction(int productId, int count) {
-		int stock = DataManager.productMap.get(productId).getStock();
+		int stock = DataManager.getData().getProductMap().get(productId).getStock();
 		if (isProductAvailable(productId, count)) {
-			DataManager.productMap.get(productId).setStock(stock - count);
+			DataManager.getData().getProductMap().get(productId).setStock(stock - count);
 		} else {
 			System.out.println("Product Out Of Stock..");
 		}
@@ -163,10 +355,12 @@ public class ShoppingCartService {
 			Product product = entry.getKey();
 			int purchaseCount = entry.getValue();
 
-			int stock = DataManager.productMap.get(product.getProductId()).getStock();
-
 			if (isProductAvailable(product.getProductId(), purchaseCount)) {
-				DataManager.productMap.get(product.getProductId()).setStock(stock - purchaseCount);
+				int stock = DataManager.getData().getProductMap().get(product.getProductId()).getStock();
+
+				synchronized (DataManager.getData().getProductMap().get(product.getProductId())) {
+					DataManager.getData().getProductMap().get(product.getProductId()).setStock(stock - purchaseCount);
+				}
 			} else {
 				System.out.println("Product Out Of Stock..");
 			}
@@ -177,8 +371,8 @@ public class ShoppingCartService {
 
 	public static boolean isProductAvailable(int productId, int count) {
 
-		if (DataManager.productMap.get(productId).getStock() >= count
-				&& DataManager.productMap.get(productId).getStock() > 0) {
+		if (DataManager.getData().getProductMap().get(productId).getStock() >= count
+				&& DataManager.getData().getProductMap().get(productId).getStock() > 0) {
 			return true;
 		}
 
@@ -189,12 +383,12 @@ public class ShoppingCartService {
 		System.out.println("Only " + product.getStock() + " left");
 	}
 
-	public static Set<Product> searchEngine() {
-		String keyWord = InputScanner.getString("Enter the Search KeyWord : ");
+	public static Set<Product> searchEngine(String keyWord) {
+//		String keyWord = InputScanner.getString("Enter the Search KeyWord : ");
 		String[] words = keyWord.split("\\s");
 		Set<Product> searchProducts = new LinkedHashSet<>();
 
-		for (Map.Entry<Integer, Product> entry : DataManager.productMap.entrySet()) {
+		for (Map.Entry<Integer, Product> entry : DataManager.getData().getProductMap().entrySet()) {
 			Product product = entry.getValue();
 			for (int i = 0; i < words.length; i++) {
 				if (product.getCategory().getCategoryName().equalsIgnoreCase(words[i])
@@ -219,7 +413,7 @@ public class ShoppingCartService {
 
 		if (category.getCategoryName().equalsIgnoreCase("mobile")
 				|| category.getCategoryName().equalsIgnoreCase("tablet")) {
-			
+
 			String screenSize = InputScanner.getString("Enter The Screen Size : ").intern();
 			int batteryCapacity = InputScanner.getInt("Enter The Battery Capacity : ");
 			int ramInGb = InputScanner.getInt("Enter The RAM Size : ");
@@ -227,7 +421,7 @@ public class ShoppingCartService {
 			int frontCameraCapacity = InputScanner.getInt("Enter The Front Camera Capacity : ");
 			int rearCameraCapacity = InputScanner.getInt("Enter The Rear Camera Capacity : ");
 			String operatingSystem = InputScanner.getString("Enter The OS : ").intern();
-			
+
 			Color colour = null;
 			while (true) {
 				String color = InputScanner.getStringInUpper("Enter The Color : ");
@@ -245,21 +439,21 @@ public class ShoppingCartService {
 			int madeInTheYear = InputScanner.getInt("Enter The Made In Year : ");
 			float weight = InputScanner.getFloat("Enter The Product Weight : ");
 
-			
-			return new MobileFeatures(screenSize, batteryCapacity, ramInGb, storageInGb, frontCameraCapacity, rearCameraCapacity, operatingSystem, colour, madeInCountry, madeInTheYear, weight);
+			return new MobileFeatures(screenSize, batteryCapacity, ramInGb, storageInGb, frontCameraCapacity,
+					rearCameraCapacity, operatingSystem, colour, madeInCountry, madeInTheYear, weight);
 		}
 
 		else if (category.getCategoryName().equalsIgnoreCase("laptop")) {
-			
+
 			String processor = InputScanner.getString("Enter The Processor Name : ").intern();
 			int processorSpeed = InputScanner.getInt("Enter The Processor Speed : ");
 			String operatingSystem = InputScanner.getString("Enter The OS").intern();
 			int ramInGb = InputScanner.getInt("Enter The RAM Size : ");
-	    	int storageInGb = InputScanner.getInt("Enter The Storage Size : ");
-	    	String screenSize = InputScanner.getString("Enter The Screen Size : ").intern();
-	    	String displayType = InputScanner.getString("Enter The Display Type : ").intern();
-	    	
-	    	Color colour = null;
+			int storageInGb = InputScanner.getInt("Enter The Storage Size : ");
+			String screenSize = InputScanner.getString("Enter The Screen Size : ").intern();
+			String displayType = InputScanner.getString("Enter The Display Type : ").intern();
+
+			Color colour = null;
 			while (true) {
 				String color = InputScanner.getStringInUpper("Enter The Color : ");
 				if (Color.isContains(color)) {
@@ -271,508 +465,24 @@ public class ShoppingCartService {
 
 				break;
 			}
-	    	
-	    	Country madeInCountry = Country.valueOf(InputScanner.getStringInUpper("Enter The Made In Country : "));
-	    	int madeInTheYear = InputScanner.getInt("Enter The Made In Year : ");
-	    	float weight = InputScanner.getFloat("Enter The Product Weight : ");
 
-			
-			return new LaptopFeatures(processor, processorSpeed, operatingSystem, ramInGb, storageInGb, screenSize, displayType, colour, madeInCountry, madeInTheYear, weight);
+			Country madeInCountry = Country.valueOf(InputScanner.getStringInUpper("Enter The Made In Country : "));
+			int madeInTheYear = InputScanner.getInt("Enter The Made In Year : ");
+			float weight = InputScanner.getFloat("Enter The Product Weight : ");
+
+			return new LaptopFeatures(processor, processorSpeed, operatingSystem, ramInGb, storageInGb, screenSize,
+					displayType, colour, madeInCountry, madeInTheYear, weight);
 		}
 
 		return null;
 	}
 
-	public static void purchaseMethod(Customer customer, Product product) {
-
-		boolean show = true;
-		while (show) {
-			Product.toString(product);
-
-			System.out.println("\n" + "1. Add to Cart" + "\n" + "2. Buy Now" + "\n" + "3. Back");
-
-			int option = InputScanner.getInt("Enter The Option : ");
-
-			switch (option) {
-
-			case ADD_TO_CART -> {
-				int count = InputScanner.getInt("How Many Product Do You Want To Purchase? : ");
-				customer.getMyCart().getProducts().put(product, count);
-				System.out.println("Product Added To The Cart SuccessFully.");
-				System.out.println();
-//				isShopping = false;
-				show = false;
-				break;
-			}
-
-			case PURCHASE -> {
-
-				while (true) {
-					if (product.getStock() < 5) {
-						displayProductsLeft(product);
-					}
-					int count = InputScanner.getInt("How Many Product Do You Want To Purchase? : ");
-
-					Map<Product, Integer> map = new LinkedHashMap<>();
-					map.put(product, count);
-
-					if (isProductAvailable(product.getProductId(), count)) {
-						while (true) {
-							System.out.println("\t" + "Confirm Your Purchase :" + "\n" + "\t" + "1. Confirm" + "\n"
-									+ "\t" + "2. Cancel");
-							int choice = InputScanner.getInt("\n" + "\t" + "Enter The Option : ");
-
-							switch (choice) {
-							case 1 -> {
-								stockDeduction(map);
-
-								Order order = new Order(map, customer.getAddress(), "COD");
-								customer.getMyOrder().add(order);
-								order.printOrder();
-								break;
-							}
-
-							case 2 -> {
-								System.out.println("Your Order Rejected..");
-								break;
-							}
-
-							default -> {
-								System.out.println("Enter The Valid Option..");
-								System.out.println();
-								continue;
-							}
-
-							}
-							break;
-						}
-					} else {
-						System.out.println(
-								"Your Product Count Exceeds. Available Product Quantity : " + product.getStock());
-						continue;
-					}
-
-					break;
-
-				}
-//				isShopping = false;
-				show = false;
-				break;
-
-			}
-
-			case BACK -> {
-				break;
-			}
-
-			default -> {
-				System.out.println("\n" + "Enter The Valid Option.");
-				System.out.println();
-				continue;
-			}
-
-			}
-
+	public static boolean isValidEmail(String email) {
+		if (email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")) {
+			return true;
 		}
 
+		return false;
 	}
 
-	public static void adminSystem(Admin admin) {
-
-		boolean flag = true;
-		while (flag) {
-			System.out.println("-----Welcome To Admin System-----");
-			int count = 0;
-
-			for (Map.Entry<Integer, Product> entry : DataManager.productMap.entrySet()) {
-				Product p = entry.getValue();
-				if (p.getStock() < 10) {
-					if (count == 0) {
-						System.out.printf("%-15s%-15s%-15s%-20s%-13s%-10s%n", "Product Id", "Category", "Brand",
-								"Model", "Price", "Stock");
-						System.out.println();
-					}
-					System.out.printf("%-15s%-15s%-15s%-20s%-13s%-10s%n", p.getProductId(), p.getCategory(),
-							p.getBrand(), p.getModel(), p.getPrice(), p.getStock());
-
-					count++;
-				}
-			}
-			System.out.println();
-
-			System.out.println("1. Add new Product" + "\n" + "2. Delete Product" + "\n" + "3. Update Existing Stock"
-					+ "\n" + "4. View Product List" + "\n" + "5. Exit");
-
-			int option = InputScanner.getInt("Enter The Option : ");
-			while (true) {
-				switch (option) {
-
-				case ADD_PRODUCT -> {
-
-					Product product = admin.createProduct();
-					addProduct(product);
-					break;
-				}
-				case DELETE_PRODUCT -> {
-					System.out.println();
-					admin.deleteProduct();
-					break;
-				}
-
-				case UPDATE_STOCK -> {
-					admin.addStock();
-					break;
-				}
-				case VIEW_PRODUCT -> {
-					System.out.println();
-					admin.viewProducts();
-					break;
-				}
-				case EXIT -> {
-					System.out.println("Thank You For Signing In..");
-					flag = false;
-					break;
-				}
-				default -> {
-					System.out.println("Enter Valid Option ..");
-					continue;
-				}
-				}
-				break;
-			}
-		}
-	}
-
-	// Customer View
-	public static void customerView(Customer customer) {
-
-		flag: while (true) {
-			System.out.println();
-			System.out.println("------Welcome To ZOHO Shopping------");
-			System.out.println();
-			System.out.println("Welcome " + customer.getCustomerName());
-			System.out.println("1. Go To Shopping." + "\n" + "2. Search Product" + "\n" + "3. My Orders" + "\n"
-					+ "4. My Cart" + "\n" + "5. Sign Out");
-
-			int option = InputScanner.getInt("Enter The Option : ");
-
-			switch (option) {
-			case SHOPPING -> {
-				boolean isShopping = true;
-				shopping: while (isShopping) {
-					boolean show = true;
-					showProducts();
-
-					product: while (true) {
-						System.out.println("\n" + "1. Select Product " + "\n" + "2. Previous");
-						option = InputScanner.getInt("Enter The Option : ");
-						
-						switch (option) {
-						case VIEW_PRODUCTS -> {
-							int index = InputScanner.getInt("Choose the Product : ");					
-							
-							if(DataManager.productMap.size()>=index) {
-							
-								Product product = DataManager.productMap
-										.get(DataManager.productMap.keySet().stream().skip(index - 1).findFirst().get());
-								
-								show: while (show) {
-								Product.toString(product);
-
-								System.out.println("\n" + "1. Add to Cart" + "\n" + "2. Buy Now" + "\n" + "3. Back");
-
-								option = InputScanner.getInt("Enter The Option : ");
-
-								switch (option) {
-
-								case ADD_TO_CART -> {
-									int count = InputScanner.getInt("How Many Product Do You Want To Purchase? : ");
-									customer.getMyCart().getProducts().put(product, count);
-									System.out.println("Product Added To The Cart SuccessFully.");
-									System.out.println();
-
-									continue flag;
-
-								}
-
-								case PURCHASE -> {
-
-									purchase: while (true) {
-										if (product.getStock() < 5) {
-											displayProductsLeft(product);
-										}
-										int count = InputScanner.getInt("How Many items are you looking to buy? : ");
-
-										Map<Product, Integer> map = new LinkedHashMap<>();
-										map.put(product, count);
-
-										if (isProductAvailable(product.getProductId(), count)) {
-
-											stockDeduction(map);
-
-											Order order = new Order(map, customer.getAddress(), "COD");
-											customer.getMyOrder().add(order);
-											order.printOrder();
-
-											break purchase;
-										} else {
-											System.out
-													.println("Your Product Count Exceeds. Available Product Quantity : "
-															+ product.getStock());
-											continue purchase;
-										}
-									}
-
-									break show;
-
-								}
-
-								case BACK -> {
-									break show;
-								}
-
-								default -> {
-									System.out.println("\n" + "Enter The Valid Option.");
-									System.out.println();
-									continue show;
-								}
-
-								}
-
-							}
-						}
-						else {
-								System.out.println("Enter The Valid Product S.no...");
-								continue shopping;
-						}
-
-						}
-
-						case PREVIOUS -> {
-							continue flag;
-						}
-
-						default -> {
-							System.out.println("Enter The Valid Option.");
-							continue product;
-						}
-						}
-						break product;
-					}
-
-				}
-
-			}
-
-			case SEARCH -> {
-
-				search: while (true) {
-					Set<Product> searchProducts = searchEngine();
-
-					int i = 1;
-					if (!searchProducts.isEmpty()) {
-						for (Product product : searchProducts) {
-							System.out.println(i++ + ". " + "\t" + product.getCategory().getCategoryName() + "\t"
-									+ product.getBrand().getBrandName() + "\t" + product.getModel() + "\t"
-									+ product.getPrice());
-						}
-					}
-
-					else {
-						System.out.println("Search keyword Not Found.");
-//					isSearch = false;
-						break search;
-					}
-
-					System.out.println("\n" + "\t" + "1. Select Product" + "\n" + "\t" + "2. Back");
-					int choice = InputScanner.getInt("\n" + "Enter The Option : ");
-
-					switch (choice) {
-
-					case VIEW_PRODUCTS -> {
-						viewProducts: while (true) {
-
-							boolean show = true;
-							while (show) {
-
-								int index = InputScanner.getInt("Choose the Product : ");
-								Product product = searchProducts.stream().skip(index - 1).findFirst().get();
-								Product.toString(product);
-
-								System.out.println("\n" + "1. Add to Cart" + "\n" + "2. Buy Now" + "\n" + "3. Back");
-
-								option = InputScanner.getInt("Enter The Option : ");
-
-								switch (option) {
-
-								case ADD_TO_CART -> {
-									int count = InputScanner.getInt("How Many items are you looking to buy? : ");
-									customer.getMyCart().getProducts().put(product, count);
-									System.out.println("Product Added To The Cart SuccessFully.");
-									System.out.println();
-
-									show = false;
-									break;
-								}
-
-								case PURCHASE -> {
-
-									while (true) {
-										if (product.getStock() < 5) {
-											displayProductsLeft(product);
-										}
-										int count = InputScanner.getInt("How Many items are you looking to buy? : ");
-
-										Map<Product, Integer> map = new LinkedHashMap<>();
-										map.put(product, count);
-
-										if (isProductAvailable(product.getProductId(), count)) {
-											while (true) {
-												System.out.println("\t" + "Confirm Your Purchase :" + "\n" + "\t"
-														+ "1. Confirm" + "\n" + "\t" + "2. Cancel");
-												choice = InputScanner.getInt("\n" + "\t" + "Enter The Option : ");
-
-												switch (choice) {
-												case 1 -> {
-													stockDeduction(map);
-
-													Order order = new Order(map, customer.getAddress(), "COD");
-													customer.getMyOrder().add(order);
-													order.printOrder();
-													break;
-												}
-
-												case 2 -> {
-													System.out.println("Your Order Rejected..");
-													break;
-												}
-
-												default -> {
-													System.out.println("Enter The Valid Option..");
-													System.out.println();
-													continue;
-												}
-
-												}
-												break;
-											}
-										} else {
-											System.out
-													.println("Your Product Count Exceeds. Available Product Quantity : "
-															+ product.getStock());
-											continue;
-										}
-										break;
-									}
-
-									show = false;
-									break;
-
-								}
-
-								case BACK -> {
-									show = false;
-									break;
-								}
-
-								default -> {
-									System.out.println("\n" + "Enter The Valid Option.");
-									System.out.println();
-									continue;
-								}
-
-								}
-								continue;
-
-							}
-							break;
-//						purchaseMethod(customer, product);
-
-						}
-
-						break search;
-
-					}
-
-					case PREVIOUS -> {
-						break;
-					}
-
-					}
-
-				}
-			}
-
-			case MY_ORDERS -> {
-				List<Order> myOrders = customer.getMyOrder();
-
-				if (myOrders.isEmpty()) {
-					System.out.println("You Are Not Order Anything. Your Orders Is Empty.");
-					System.out.println();
-				}
-
-				else {
-					for (Order order : myOrders) {
-						order.printOrder();
-					}
-				}
-				break;
-			}
-
-			case MY_CART -> {
-
-				while (true) {
-					if (customer.getMyCart().getProducts().isEmpty()) {
-						System.out.println("Your Cart is Empty.");
-						System.out.println();
-						break;
-					}
-
-					else {
-						customer.getMyCart().viewCart();
-						System.out.println("\n" + "\t" + "1. Buy Products" + "\n" + "\t" + "2. Clear Cart");
-
-						int choice = InputScanner.getInt("Enter The Option : ");
-
-						switch (choice) {
-
-						case BUY_PRODUCTS -> {
-							customer.buyProducts();
-							break;
-						}
-
-						case CLEAR_CART -> {
-							customer.getMyCart().clearCart();
-							break;
-						}
-
-						default -> {
-							System.out.println("Enter the Valid Option.");
-							System.out.println();
-							continue;
-						}
-
-						}
-					}
-					break;
-
-				}
-			}
-
-			case SIGN_OUT -> {
-				System.out.println("Sign Out Successful. Happy Shopping..");
-				System.out.println();
-
-				break flag;
-			}
-
-			default -> {
-				System.out.println("Enter Valid Option.");
-				continue flag;
-			}
-
-			}
-		}
-
-	}
 }
