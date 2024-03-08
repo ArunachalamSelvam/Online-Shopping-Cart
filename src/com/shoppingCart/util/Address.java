@@ -1,6 +1,7 @@
 package com.shoppingCart.util;
 
 public class Address {
+	
 	private String doorNo;
 	private String streetName;
 	private String village;
